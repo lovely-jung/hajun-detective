@@ -100,17 +100,56 @@ button{font:inherit;cursor:pointer}
   .notes{position:static}
   .team{margin-left:0}
 }
-@media (prefers-reduced-motion:no-preference){ .q{transition:background .2s,border-color .2s} }
+@media (prefers-reduced-motion:no-preference){ .q{transition:background .2s,border-color .2s} .rank li{transition:transform .3s} }
+.team select{font:inherit;border:2px solid var(--line);border-radius:10px;padding:6px 8px;background:var(--panel);color:var(--ink)}
+.sync{font-size:12px;color:var(--muted);width:100%;text-align:right}
+.board{min-height:100vh;background:var(--ink);color:#fff}
+.board-in{max-width:1100px;margin:0 auto;padding-block:28px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.board-top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-bottom:24px}
+.board h1{color:var(--yellow);font-size:40px}
+.cls-tabs{display:flex;gap:8px;margin-left:auto}
+.cls-tabs button{border:0;border-radius:12px;padding:10px 18px;font-family:var(--display);font-size:22px;background:#2C3650;color:#C9D3EA}
+.cls-tabs button[aria-pressed="true"]{background:var(--yellow);color:var(--ink)}
+.rank{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.rank li{display:grid;grid-template-columns:72px minmax(0,1fr) auto auto;gap:16px;align-items:center;background:#262F47;border-radius:18px;padding:16px 22px;font-variant-numeric:tabular-nums}
+.rank .pos{font-family:var(--display);font-size:40px;color:#9DB8E0;text-align:center}
+.rank li:nth-child(1){background:#3357AD}.rank li:nth-child(1) .pos{color:var(--yellow)}
+.rank .nm{font-family:var(--display);font-size:34px;overflow-wrap:anywhere}
+.rank .sv{font-size:22px;color:#C9D3EA}
+.rank .sc{font-family:var(--display);font-size:44px;color:var(--yellow);min-width:110px;text-align:right}
+.board-empty{font-size:22px;color:#C9D3EA}
+.board-foot{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;margin-top:28px;color:#9AA6C2;font-size:14px}
+.reset-box{display:flex;gap:8px;align-items:center}
+.reset-box input{font:inherit;border:1px solid #445; border-radius:8px;padding:6px 8px;background:#1D2433;color:#fff;width:90px}
+@media (max-width:600px){.rank li{grid-template-columns:48px minmax(0,1fr) auto}.rank .sv{display:none}.rank .nm{font-size:24px}.rank .sc{font-size:30px;min-width:0}}
 </style>
 </head>
 <body>
 
 
-<div class="wrap">
+<div class="board" id="board" hidden>
+  <div class="board-in">
+    <div class="board-top">
+      <span class="badge">디지털 발자국 탐정</span>
+      <h1>실시간 순위표</h1>
+      <div class="cls-tabs" id="clsTabs"></div>
+    </div>
+    <ol class="rank" id="rank"></ol>
+    <p class="board-empty" id="boardEmpty">아직 점수를 올린 모둠이 없어요. 모둠이 문제를 맞히면 여기에 바로 나타나요.</p>
+    <div class="board-foot">
+      <span id="boardStatus">불러오는 중…</span>
+      <span class="reset-box"><label for="pin">초기화 비밀번호</label><input id="pin" inputmode="numeric" autocomplete="off" size="6"><button class="btn ghost" id="boardReset" type="button">이 반 순위 지우기</button></span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" id="main">
   <header class="top">
     <span class="badge">디지털 발자국 탐정</span>
     <h1>하준이의 SNS에서 정보를 찾아라</h1>
     <div class="team">
+      <label for="cls">반</label>
+      <select id="cls"><option value="">선택</option><option value="1">1반</option><option value="2">2반</option><option value="3">3반</option></select>
       <label for="teamName">모둠 이름</label>
       <input id="teamName" placeholder="예: 3모둠" autocomplete="off">
       <div class="timer" id="timer" aria-live="polite">8:00</div>
@@ -300,6 +339,7 @@ const norm=s=>s.toLowerCase().replace(/\s+/g,'');
 function check(i){
   if(st[i].solved) return;
   const v=norm(document.getElementById('a'+i).value), f=document.getElementById('f'+i);
+  if(!document.getElementById('cls').value||!document.getElementById('teamName').value.trim()){f.className='fb bad';f.textContent='맨 위에서 반과 모둠 이름을 먼저 정해 주세요.';(document.getElementById('cls').value?document.getElementById('teamName'):document.getElementById('cls')).focus();return;}
   if(!v){f.className='fb bad';f.textContent='답을 먼저 적어 주세요.';return;}
   const ok=Q[i].k.every(alts=>alts.split('|').some(a=>v.includes(norm(dec(a)))));
   if(ok){ st[i].solved=true; f.className='fb ok'; f.textContent='정답! 🎯'; document.getElementById('q'+i).classList.add('solved'); document.getElementById('a'+i).disabled=true; }
@@ -315,6 +355,7 @@ function render(){
   document.getElementById('count').textContent=n+' / 6 해결';
   document.getElementById('done').classList.toggle('show',n===6);
   try{localStorage.setItem('hajun-state',JSON.stringify({st,ans:Q.map((_,i)=>document.getElementById('a'+i).value)}));}catch(e){}
+  if(typeof pushScore==='function') pushScore();
 }
 // 새로고침해도 이 태블릿의 진행 상황 유지
 try{const saved=JSON.parse(localStorage.getItem('hajun-state')||'null'); if(saved){saved.st.forEach((s,i)=>{st[i]=s; const a=document.getElementById('a'+i); a.value=saved.ans[i]||'';
@@ -323,7 +364,50 @@ try{const saved=JSON.parse(localStorage.getItem('hajun-state')||'null'); if(save
 // 다음 모둠·다음 반을 위해 초기화 (두 번 눌러야 지워짐)
 const resetBtn=document.getElementById('resetBtn'); let armed=false, armT=null;
 resetBtn.onclick=()=>{ if(!armed){armed=true; resetBtn.textContent='한 번 더 누르면 초기화'; clearTimeout(armT); armT=setTimeout(()=>{armed=false;resetBtn.textContent='처음부터';},3000); return;}
-  try{localStorage.removeItem('hajun-state');localStorage.removeItem('team');}catch(e){} location.reload(); };
+  try{localStorage.removeItem('hajun-state');localStorage.removeItem('team');localStorage.removeItem('cls');}catch(e){} location.reload(); };
+
+// ---------- 순위표 서버 (선생님 구글 계정의 Apps Script) ----------
+const API='https://script.google.com/macros/s/AKfycbyNCA33dPQ6itU087a-0B0GmPIK2WRWIH9_bJAGHh1wk3XsW6-yLwYMaHejEuUXBbu01A/exec';
+const clsSel=document.getElementById('cls'), teamIn=document.getElementById('teamName');
+const syncEl=document.createElement('div'); syncEl.className='sync'; syncEl.id='sync'; document.querySelector('.team').appendChild(syncEl);
+try{const c=localStorage.getItem('cls'); if(c) clsSel.value=c;}catch(e){}
+clsSel.addEventListener('change',()=>{try{localStorage.setItem('cls',clsSel.value);}catch(e){} pushScore();});
+teamIn.addEventListener('change',()=>pushScore());
+let pushT=null;
+function pushScore(){
+  clearTimeout(pushT);
+  pushT=setTimeout(()=>{
+    const cls=clsSel.value, team=teamIn.value.trim(); if(!cls||!team) return;
+    const n=st.filter(s=>s.solved).length, sc=st.reduce((a,s)=>a+(s.solved?10:0)-(s.hint?3:0),0);
+    const u=API+'?action=submit&cls='+encodeURIComponent(cls)+'&team='+encodeURIComponent(team)+'&score='+sc+'&solved='+n;
+    syncEl.textContent='순위표에 올리는 중…';
+    fetch(u,{credentials:'omit'}).then(r=>r.json()).then(()=>{syncEl.textContent='✓ 순위표에 반영됨';}).catch(()=>{syncEl.textContent='⚠ 순위표 연결 안 됨 (활동은 계속할 수 있어요)';});
+  },400);
+}
+
+// ---------- 선생님용 순위표 화면 (주소 끝에 #board) ----------
+function startBoard(){
+  document.getElementById('main').hidden=true; document.getElementById('board').hidden=false;
+  let cur='1'; const tabs=document.getElementById('clsTabs');
+  ['1','2','3'].forEach(c=>{const b=document.createElement('button'); b.type='button'; b.textContent=c+'반'; b.dataset.c=c; b.setAttribute('aria-pressed',c===cur); tabs.appendChild(b);});
+  tabs.addEventListener('click',e=>{const c=e.target.dataset.c; if(!c) return; cur=c; tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===cur)); load();});
+  const esc=s=>s.replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+  function load(){
+    fetch(API+'?action=board&cls='+cur,{credentials:'omit'}).then(r=>r.json()).then(d=>{
+      const rows=Object.entries(d.teams||{}).sort((a,b)=>b[1].score-a[1].score||b[1].solved-a[1].solved||a[1].t-b[1].t);
+      document.getElementById('rank').innerHTML=rows.map(([nm,v],i)=>`<li><span class="pos">${i+1}</span><span class="nm">${esc(nm)}</span><span class="sv">${v.solved} / 6 해결</span><span class="sc">${v.score}점</span></li>`).join('');
+      document.getElementById('boardEmpty').hidden=rows.length>0;
+      document.getElementById('boardStatus').textContent=cur+'반 · 5초마다 자동 새로고침 · 마지막 확인 '+new Date().toLocaleTimeString('ko-KR');
+    }).catch(()=>{document.getElementById('boardStatus').textContent='⚠ 순위표 서버에 연결할 수 없어요. 인터넷 연결을 확인해 주세요.';});
+  }
+  load(); setInterval(load,5000);
+  document.getElementById('boardReset').onclick=()=>{
+    const pin=document.getElementById('pin').value.trim();
+    fetch(API+'?action=reset&cls='+cur+'&pin='+encodeURIComponent(pin),{credentials:'omit'}).then(r=>r.json()).then(d=>{document.getElementById('boardStatus').textContent=d.ok?cur+'반 순위를 지웠어요.':'비밀번호가 맞지 않아요.'; load();});
+  };
+}
+if(location.hash==='#board') startBoard();
+window.addEventListener('hashchange',()=>location.reload());
 
 // ---------- 탭 (좁은 화면) ----------
 const panes=document.querySelectorAll('[data-pane]');
