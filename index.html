@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>하준이 SNS 탐정</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: 태블릿 가로 = 왼쪽 SNS 피드(폰 화면) + 오른쪽 수사 노트, 좁으면 탭 전환 */
+:root{
+  --bg:#EEF3FB; --panel:#FFFFFF; --ink:#1D2433; --muted:#6B7385; --line:#DCE3EF;
+  --blue:#3357AD; --blue-soft:#E3EBFA; --yellow:#FDECB4; --orange:#EF644B; --ok:#1F8A5B; --ok-soft:#DDF3E8; --bad-soft:#FDE6E1;
+  --display:"Jua","Noto Sans KR",system-ui,sans-serif; --body:"Noto Sans KR",system-ui,-apple-system,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;word-break:keep-all;overflow-wrap:anywhere}
+.wrap{max-width:1180px;margin:0 auto;padding-block:16px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-bottom:16px}
+.badge{font-family:var(--display);background:var(--blue);color:#fff;border-radius:999px;padding:6px 14px;font-size:15px}
+h1{font-family:var(--display);font-weight:400;font-size:28px;margin:0;color:var(--blue);text-wrap:balance}
+.team{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap}
+.team label{font-size:14px;color:var(--muted)}
+.team input{font:inherit;border:2px solid var(--line);border-radius:10px;padding:6px 10px;width:140px;background:var(--panel);color:var(--ink)}
+.timer{font-family:var(--display);font-size:22px;background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:4px 12px;font-variant-numeric:tabular-nums;min-width:86px;text-align:center}
+.timer.low{color:var(--orange);border-color:var(--orange)}
+button{font:inherit;cursor:pointer}
+.btn{border:0;border-radius:10px;padding:8px 14px;background:var(--blue);color:#fff;font-weight:700}
+.btn.ghost{background:var(--blue-soft);color:var(--blue)}
+.btn:focus-visible,.post-img:focus-visible,input:focus-visible,.tab:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+
+.tabs{display:none;gap:8px;margin-bottom:12px}
+.tab{flex:1;border:0;border-radius:12px;padding:10px;background:var(--panel);color:var(--muted);font-family:var(--display);font-size:18px}
+.tab[aria-selected="true"]{background:var(--blue);color:#fff}
+
+.grid{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:24px;align-items:start}
+.phone{background:var(--panel);border-radius:28px;border:2px solid var(--line);overflow:hidden}
+.app-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+.app-name{font-family:var(--display);font-size:22px;color:var(--ink)}
+.app-bar small{color:var(--muted);font-size:12px}
+.profile{display:flex;gap:14px;padding:16px;align-items:center;border-bottom:1px solid var(--line)}
+.avatar{width:68px;height:68px;border-radius:50%;background:conic-gradient(#F6B93B,#EF644B,#3357AD,#F6B93B);padding:3px;flex:none}
+.avatar span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:#FFF;font-family:var(--display);font-size:26px;color:var(--blue)}
+.profile b{font-size:17px}
+.profile .handle{color:var(--muted);font-size:13px}
+.profile .bio{font-size:14px;margin-top:2px}
+.stats{display:flex;gap:14px;font-size:13px;color:var(--muted);margin-top:4px}
+.stats strong{color:var(--ink)}
+.post{border-bottom:8px solid var(--bg)}
+.post-head{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:14px}
+.mini{width:30px;height:30px;border-radius:50%;background:var(--blue-soft);display:grid;place-items:center;font-family:var(--display);color:var(--blue);font-size:14px}
+.post-head .date{margin-left:auto;color:var(--muted);font-size:12px}
+.post-img{display:block;width:100%;border:0;padding:0;background:none;position:relative}
+.post-img svg{display:block;width:100%;height:auto}
+.zoom-tip{position:absolute;right:10px;bottom:10px;background:rgba(29,36,51,.75);color:#fff;font-size:12px;border-radius:999px;padding:3px 10px;pointer-events:none}
+.post-body{padding:10px 14px 14px;font-size:14px}
+.likes{font-weight:700;font-size:13px;margin-bottom:4px}
+.caption b{margin-right:4px}
+.comments{margin-top:8px;display:grid;gap:4px;font-size:13px;color:#3A4254}
+.comments .reply{padding-left:18px}
+.comments b{margin-right:4px}
+
+.notes{background:var(--panel);border-radius:20px;border:2px solid var(--line);padding:20px;position:sticky;top:max(16px,env(safe-area-inset-top,0px))}
+.notes h2{font-family:var(--display);font-weight:400;font-size:24px;margin:0 0 4px;color:var(--blue)}
+.notes .lead{color:var(--muted);font-size:14px;margin:0 0 14px}
+.score{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.chip{background:var(--yellow);border-radius:999px;padding:4px 12px;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.q{border:2px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:8px;margin-bottom:10px}
+.q.solved{border-color:var(--ok);background:var(--ok-soft)}
+.q-title{display:flex;gap:10px;align-items:baseline}
+.q-num{font-family:var(--display);color:#fff;background:var(--blue);border-radius:8px;min-width:28px;text-align:center;padding:0 6px}
+.q-title p{margin:0;font-weight:700}
+.q-row{display:flex;gap:8px;flex-wrap:wrap}
+.q-row input{flex:1;min-width:0;font:inherit;border:2px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;color:var(--ink)}
+.fb{font-size:14px;min-height:0}
+.fb.ok{color:var(--ok);font-weight:700}
+.fb.bad{color:#B13A22}
+.hint{font-size:14px;background:var(--blue-soft);border-radius:10px;padding:8px 10px;color:#22396F}
+.done{display:none;border-radius:16px;background:var(--ink);color:#fff;padding:18px;margin-top:6px}
+.done.show{display:block}
+.done h3{font-family:var(--display);font-weight:400;font-size:22px;margin:0 0 6px;color:var(--yellow)}
+.done p{margin:0;font-size:15px}
+
+.modal{position:fixed;inset:0;background:rgba(14,18,28,.92);display:flex;flex-direction:column;z-index:20;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.modal[hidden]{display:none!important}
+.modal-bar{display:flex;gap:8px;align-items:center;padding:10px 16px;color:#fff}
+.modal-bar span{margin-right:auto;font-size:14px;opacity:.85}
+.modal-bar .btn{background:#fff;color:var(--ink);min-width:44px}
+.stage{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.stage-inner{margin:0 auto}
+.stage-inner svg{width:100%;height:auto;display:block}
+
+@media (max-width:860px){
+  .tabs{display:flex}
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .grid > section[data-pane]{display:none}
+  .grid > section[data-pane].active{display:block}
+  .notes{position:static}
+  .team{margin-left:0}
+}
+@media (prefers-reduced-motion:no-preference){ .q{transition:background .2s,border-color .2s} }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="top">
+    <span class="badge">디지털 발자국 탐정</span>
+    <h1>하준이의 SNS에서 정보를 찾아라</h1>
+    <div class="team">
+      <label for="teamName">모둠 이름</label>
+      <input id="teamName" placeholder="예: 3모둠" autocomplete="off">
+      <div class="timer" id="timer" aria-live="polite">8:00</div>
+      <button class="btn ghost" id="timerBtn" type="button">시작</button>
+      <button class="btn ghost" id="resetBtn" type="button">처음부터</button>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tabFeed" aria-selected="true" type="button">📱 SNS 보기</button>
+    <button class="tab" role="tab" id="tabNotes" aria-selected="false" type="button">🔍 수사 노트</button>
+  </div>
+
+  <div class="grid">
+    <section data-pane="feed" class="active" aria-label="하준이 SNS">
+      <div class="phone">
+        <div class="app-bar"><span class="app-name">찰칵그램</span><small>※ 수업용 가상 인물입니다</small></div>
+        <div class="profile">
+          <div class="avatar"><span>하</span></div>
+          <div>
+            <b>하준 ⚽</b> <span class="handle">@hajun_kongkong</span>
+            <div class="bio">⚽ 축구 | 🐶 콩이 | 🍗 치킨 | 6학년</div>
+            <div class="stats"><span><strong>10</strong> 게시물</span><span><strong>214</strong> 팔로워</span><span><strong>198</strong> 팔로잉</span></div>
+          </div>
+        </div>
+        <div id="feed"></div>
+      </div>
+    </section>
+
+    <section data-pane="notes" aria-label="수사 노트">
+      <div class="notes">
+        <h2>🔍 수사 노트</h2>
+        <p class="lead">사진을 눌러 크게 보세요. 답은 게시물 <b>여러 개를 합쳐야</b> 나오는 것도 있어요. 힌트를 보면 3점이 깎여요.</p>
+        <div class="score"><span class="chip" id="score">0점</span><span class="chip" id="count" style="background:var(--blue-soft)">0 / 6 해결</span></div>
+        <div id="qs"></div>
+        <div class="done" id="done">
+          <h3>수사 완료!</h3>
+          <p>하준이는 학교 이름, 주소, 생일을 <b>한 번도 직접 쓴 적이 없어요.</b> 그런데 여러분은 다 알아냈죠. 낯선 사람도 똑같이 할 수 있어요. 이 정보로 나쁜 사람이 무엇을 할 수 있을지 모둠에서 이야기해 보세요.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-label="사진 크게 보기">
+  <div class="modal-bar">
+    <span>손가락으로 밀어서 구석구석 살펴보세요</span>
+    <button class="btn" id="zOut" type="button" aria-label="축소">－</button>
+    <button class="btn" id="zIn" type="button" aria-label="확대">＋</button>
+    <button class="btn" id="zClose" type="button">닫기</button>
+  </div>
+  <div class="stage" id="stage"><div class="stage-inner" id="stageInner"></div></div>
+</div>
+
+<script>
+// ---------- 게시물 그림 (SVG, 400x400) ----------
+const F = 'font-family="Noto Sans KR, sans-serif"';
+const SVG = {
+lock: `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#1E2A4A"/>
+<g fill="#2C3D69">${Array.from({length:40},(_,i)=>`<circle cx="${(i*97)%400}" cy="${(i*53)%400}" r="2"/>`).join('')}</g>
+<rect x="110" y="70" width="180" height="40" rx="8" fill="#3357AD"/><text x="200" y="97" text-anchor="middle" ${F} font-size="18" fill="#fff" font-weight="700">비밀번호 변경</text>
+<rect x="80" y="130" width="240" height="44" rx="10" fill="#fff"/><text x="100" y="160" ${F} font-size="22" fill="#1D2433" letter-spacing="6">●●●●●●●●</text>
+<path d="M170 250 v-25 a30 30 0 0 1 60 0 v25" fill="none" stroke="#FDECB4" stroke-width="12"/><rect x="150" y="248" width="100" height="80" rx="12" fill="#FDECB4"/><circle cx="200" cy="282" r="9" fill="#1E2A4A"/><rect x="196" y="285" width="8" height="22" fill="#1E2A4A"/>
+<text x="200" y="360" text-anchor="middle" ${F} font-size="16" fill="#9DB8E0">✔ 비밀번호가 변경되었습니다</text></svg>`,
+
+kong: `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#F4E7D7"/><rect y="250" width="400" height="150" fill="#9C7A5B"/>
+<rect x="20" y="170" width="360" height="130" rx="30" fill="#5A7FB8"/><rect x="40" y="150" width="90" height="70" rx="20" fill="#6E91C8"/>
+<rect x="300" y="40" width="70" height="90" fill="#fff" stroke="#C9B49B" stroke-width="4"/><text x="335" y="70" text-anchor="middle" ${F} font-size="10" fill="#7A6650">2026</text><text x="335" y="95" text-anchor="middle" ${F} font-size="24" fill="#EF644B" font-weight="700">11</text><text x="335" y="118" text-anchor="middle" ${F} font-size="9" fill="#7A6650">NOV</text>
+<g transform="translate(190 210)"><ellipse cx="0" cy="40" rx="80" ry="45" fill="#FFFFFF"/><circle cx="-10" cy="-20" r="55" fill="#FFFFFF"/><ellipse cx="-58" cy="-25" rx="18" ry="34" fill="#E8D4BA" transform="rotate(20 -58 -25)"/><ellipse cx="38" cy="-25" rx="18" ry="34" fill="#E8D4BA" transform="rotate(-20 38 -25)"/><circle cx="-30" cy="-25" r="7" fill="#222"/><circle cx="10" cy="-25" r="7" fill="#222"/><ellipse cx="-10" cy="-5" rx="10" ry="7" fill="#222"/><path d="M-22 6 q12 10 24 0" stroke="#222" stroke-width="3" fill="none"/><rect x="-35" y="22" width="50" height="10" rx="5" fill="#EF644B"/><circle cx="-10" cy="36" r="7" fill="#F6B93B"/></g>
+<text x="20" y="385" ${F} font-size="13" fill="#F4E7D7">PM 05:48</text></svg>`,
+
+table: `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#F7F7FA"/>
+<rect x="20" y="20" width="360" height="54" rx="10" fill="#3357AD"/><text x="200" y="45" text-anchor="middle" ${F} font-size="18" fill="#fff" font-weight="700">하준이 학원 시간표 (11월~)</text><text x="200" y="64" text-anchor="middle" ${F} font-size="10" fill="#CADCFC">은하수학학원 · 은하영어 (은하동)</text>
+${['월','화','수','목','금','토'].map((d,i)=>{const y=90+i*48;const row=[ ['영어','4:00 ~ 5:50','#E3EBFA'],['수학','3:30 ~ 5:20','#FDECB4'],['영어','4:00 ~ 5:50','#E3EBFA'],['수학','3:30 ~ 5:20','#FDECB4'],['영어','4:00 ~ 5:50','#E3EBFA'],['축구교실','10:00 ~ 12:00','#DDF3E8'] ][i];return `<rect x="20" y="${y}" width="60" height="40" rx="8" fill="#fff" stroke="#DCE3EF"/><text x="50" y="${y+26}" text-anchor="middle" ${F} font-size="16" font-weight="700" fill="#1D2433">${d}</text><rect x="90" y="${y}" width="290" height="40" rx="8" fill="${row[2]}"/><text x="105" y="${y+26}" ${F} font-size="16" font-weight="700" fill="#1D2433">${row[0]}</text><text x="365" y="${y+26}" text-anchor="end" ${F} font-size="15" fill="#3A4254">${row[1]}</text>`}).join('')}
+<text x="380" y="392" text-anchor="end" ${F} font-size="9" fill="#9AA3B5">캡처 2026.11.05</text></svg>`,
+
+cake: `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#2B2350"/>
+<g fill="#F6B93B">${Array.from({length:18},(_,i)=>`<rect x="${(i*61)%390}" y="${(i*37)%160}" width="6" height="12" transform="rotate(${i*25} ${(i*61)%390} ${(i*37)%160})" fill="${['#F6B93B','#EF644B','#9DB8E0'][i%3]}"/>`).join('')}</g>
+<rect x="30" y="300" width="340" height="100" fill="#6E5B4A"/>
+<ellipse cx="200" cy="300" rx="130" ry="22" fill="#fff"/>
+<rect x="95" y="215" width="210" height="85" fill="#FFD1DC"/><ellipse cx="200" cy="215" rx="105" ry="18" fill="#FFE4EC"/><path d="M95 240 q26 18 52 0 q26 18 52 0 q26 18 52 0 q26 18 52 0" fill="none" stroke="#fff" stroke-width="8"/>
+<g ${F} font-weight="700"><rect x="150" y="130" width="40" height="70" rx="6" fill="#9DB8E0"/><text x="170" y="178" text-anchor="middle" font-size="40" fill="#fff">1</text><rect x="210" y="130" width="40" height="70" rx="6" fill="#9DB8E0"/><text x="230" y="178" text-anchor="middle" font-size="40" fill="#fff">3</text></g>
+<path d="M170 128 q-8 -16 0 -28 q8 12 0 28" fill="#F6B93B"/><path d="M230 128 q-8 -16 0 -28 q8 12 0 28" fill="#F6B93B"/>
+<text x="200" y="60" text-anchor="middle" ${F} font-size="26" fill="#FDECB4" font-weight="700">HAPPY BIRTHDAY</text></svg>`,
+
+box: `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#D9D4CC"/><rect y="300" width="400" height="100" fill="#B9AFA2"/>
+<polygon points="60,140 300,110 360,150 120,185" fill="#D6A96A"/><polygon points="60,140 120,185 120,360 60,310" fill="#B88B4F"/><polygon points="120,185 360,150 360,320 120,360" fill="#C99A5B"/>
+<rect x="150" y="190" width="185" height="110" fill="#fff" transform="rotate(-5 240 245)"/>
+<g transform="rotate(-5 240 245)" ${F} fill="#1D2433">
+<text x="160" y="208" font-size="9" fill="#EF644B" font-weight="700">빠른택배 · 운송장</text>
+<text x="160" y="226" font-size="10">받는 분: 도○준</text>
+<text x="160" y="241" font-size="9">010-****-**18</text>
+<text x="160" y="257" font-size="9">별빛로 33 (별빛마을 3단지)</text>
+<text x="160" y="272" font-size="10" font-weight="700">30</text><rect x="173" y="263" width="10" height="11" fill="#555"/><text x="186" y="272" font-size="10" font-weight="700">동  12</text><rect x="218" y="263" width="18" height="11" fill="#555"/><text x="239" y="272" font-size="10" font-weight="700">호</text>
+<text x="160" y="290" font-size="8" fill="#6B7385">상품: 축구화 (250mm)</text></g>
+<path d="M300 210 q30 -10 60 10 l20 60 q-30 20 -70 0 z" fill="#F2C9A5"/><rect x="335" y="250" width="70" height="90" rx="20" fill="#3357AD"/>
+</svg>`,
+
+view: `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5B4B9A"/><stop offset=".55" stop-color="#EF8A5B"/><stop offset="1" stop-color="#FDD38B"/></linearGradient></defs>
+<rect width="400" height="400" fill="url(#sky)"/><circle cx="270" cy="250" r="38" fill="#FFE8A8"/>
+<g fill="#3A3557">${[[0,300,40,100],[45,320,30,80],[80,290,35,110],[160,310,28,90],[195,280,40,120],[300,300,35,100],[340,285,30,115],[372,315,30,85]].map(b=>`<rect x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}"/>`).join('')}</g>
+<g fill="#FFD27A" opacity=".7">${Array.from({length:30},(_,i)=>`<rect x="${[5,20,50,85,100,165,200,215,305,320,345,378][i%12]}" y="${310+((i*13)%70)}" width="5" height="5"/>`).join('')}</g>
+<rect x="0" y="0" width="400" height="400" fill="none" stroke="#EDEDED" stroke-width="26"/><rect x="193" y="0" width="14" height="400" fill="#EDEDED"/><rect x="0" y="365" width="400" height="35" fill="#E2E2E2"/></svg>`,
+
+cu: `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#DDE6E0"/><rect y="230" width="400" height="170" fill="#C7D3CA"/>
+<rect x="0" y="20" width="400" height="60" fill="#7A3E98"/><text x="20" y="60" ${F} font-size="30" fill="#fff" font-weight="700">CU</text><rect x="80" y="38" width="300" height="26" fill="#8E52AC"/>
+<g transform="translate(110 150)"><rect x="0" y="40" width="90" height="80" rx="6" fill="#EF644B"/><ellipse cx="45" cy="40" rx="45" ry="10" fill="#fff"/><text x="45" y="90" text-anchor="middle" ${F} font-size="16" fill="#fff" font-weight="700">라면</text></g>
+<g transform="translate(230 200)"><polygon points="0,70 45,0 90,70" fill="#fff"/><polygon points="10,70 45,15 80,70" fill="#2C2C2C"/><rect x="25" y="52" width="40" height="14" fill="#F6B93B"/></g>
+<g transform="translate(18 300) rotate(-8)"><rect width="120" height="92" fill="#fff"/><g ${F} fill="#333"><text x="8" y="14" font-size="8" font-weight="700">CU 별빛3단지점</text><text x="8" y="26" font-size="6">2026-10-25 17:31</text><text x="8" y="40" font-size="6">컵라면(대)      1,500</text><text x="8" y="50" font-size="6">삼각김밥         1,300</text><text x="8" y="64" font-size="7" font-weight="700">합계              2,800</text><text x="8" y="80" font-size="5">별빛로 31 · 감사합니다</text></g></g></svg>`,
+
+lunch: `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#C9D6E4"/>
+<rect x="40" y="70" width="320" height="260" rx="22" fill="#D7DEE6" stroke="#AEB9C6" stroke-width="4"/>
+<rect x="60" y="90" width="120" height="100" rx="14" fill="#fff"/><g fill="#F3F3F3">${Array.from({length:14},(_,i)=>`<circle cx="${80+(i%5)*20}" cy="${110+Math.floor(i/5)*22}" r="9"/>`).join('')}</g>
+<rect x="195" y="90" width="70" height="100" rx="14" fill="#7DB86B"/><rect x="280" y="90" width="60" height="100" rx="14" fill="#F2B652"/>
+<rect x="60" y="205" width="280" height="105" rx="14" fill="#B8341F"/><g fill="#E8613F">${Array.from({length:9},(_,i)=>`<circle cx="${90+i*30}" cy="${240+(i%2)*25}" r="10"/>`).join('')}</g><g fill="#F5E6C8">${Array.from({length:6},(_,i)=>`<rect x="${80+i*42}" y="${262-(i%2)*30}" width="22" height="8" rx="3"/>`).join('')}</g>
+<g transform="translate(250 6) rotate(6)"><rect width="140" height="54" fill="#fff" stroke="#DCE3EF"/><text x="10" y="20" ${F} font-size="11" fill="#3357AD" font-weight="700">해</text><text x="38" y="20" ${F} font-size="11" fill="#3357AD" font-weight="700">초등학교</text><text x="10" y="36" ${F} font-size="8" fill="#555">10월 20일(화) 중식</text><text x="10" y="48" ${F} font-size="7" fill="#777">마라탕 · 꿔바로우 · 쌀밥</text><ellipse cx="29" cy="15" rx="9" ry="8" fill="#E8613F" opacity=".9"/><circle cx="36" cy="20" r="3" fill="#E8613F" opacity=".8"/></g>
+<g transform="translate(330 150) rotate(-30)"><ellipse cx="14" cy="14" rx="12" ry="16" fill="#B9C2CC"/><rect x="10" y="26" width="8" height="150" rx="4" fill="#B9C2CC"/></g></svg>`,
+
+sports: `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#BFE3F7"/><rect y="230" width="400" height="170" fill="#D9B38C"/><ellipse cx="200" cy="330" rx="230" ry="70" fill="none" stroke="#fff" stroke-width="5"/>
+<rect x="10" y="40" width="380" height="50" fill="#fff" stroke="#3357AD" stroke-width="3"/>
+<text x="166" y="73" ${F} font-size="19" fill="#3357AD" font-weight="700">솔초등학교 가을 운동회</text><text x="120" y="73" ${F} font-size="19" fill="#3357AD" font-weight="700">해</text>
+<g><line x1="70" y1="160" x2="70" y2="230" stroke="#888" stroke-width="2"/><circle cx="55" cy="72" r="34" fill="#EF644B"/><circle cx="95" cy="80" r="32" fill="#F6B93B"/><circle cx="130" cy="70" r="28" fill="#9DB8E0"/><circle cx="75" cy="115" r="30" fill="#7DB86B"/><circle cx="120" cy="112" r="26" fill="#EF644B"/></g>
+<g>${[[150,250,'#3357AD','6-2'],[230,270,'#3357AD','6-2'],[305,245,'#EF644B','6-1']].map(p=>`<circle cx="${p[0]}" cy="${p[1]-55}" r="16" fill="#F2C9A5"/><rect x="${p[0]-16}" y="${p[1]-40}" width="32" height="44" rx="8" fill="${p[2]}"/><text x="${p[0]}" y="${p[1]-14}" text-anchor="middle" ${F} font-size="11" fill="#fff" font-weight="700">${p[3]}</text><rect x="${p[0]-14}" y="${p[1]+4}" width="9" height="30" fill="#333"/><rect x="${p[0]+5}" y="${p[1]+4}" width="9" height="30" fill="#333"/>`).join('')}</g>
+<rect x="320" y="130" width="60" height="12" fill="#fff"/><text x="350" y="140" text-anchor="middle" ${F} font-size="8" fill="#3357AD">계주 결승</text></svg>`,
+
+kongbday: `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#FDECB4"/>
+<g>${Array.from({length:8},(_,i)=>`<polygon points="${20+i*48},40 ${44+i*48},40 ${32+i*48},70" fill="${['#EF644B','#3357AD','#7DB86B','#F6B93B'][i%4]}"/>`).join('')}<line x1="10" y1="40" x2="390" y2="40" stroke="#888" stroke-width="2"/></g>
+<g transform="translate(200 240)"><ellipse cx="0" cy="70" rx="90" ry="45" fill="#FFFFFF"/><circle cx="0" cy="0" r="62" fill="#FFFFFF"/><ellipse cx="-55" cy="-5" rx="20" ry="38" fill="#E8D4BA" transform="rotate(20 -55 -5)"/><ellipse cx="55" cy="-5" rx="20" ry="38" fill="#E8D4BA" transform="rotate(-20 55 -5)"/><circle cx="-20" cy="-5" r="8" fill="#222"/><circle cx="20" cy="-5" r="8" fill="#222"/><ellipse cx="0" cy="18" rx="11" ry="8" fill="#222"/><path d="M-12 30 q12 10 24 0" stroke="#222" stroke-width="3" fill="none"/><polygon points="-30,-55 0,-130 30,-55" fill="#3357AD"/><circle cx="0" cy="-132" r="9" fill="#F6B93B"/></g>
+<text x="200" y="110" text-anchor="middle" ${F} font-size="22" fill="#EF644B" font-weight="700">콩이 생일 축하해!</text></svg>`
+};
+
+// ---------- 게시물 ----------
+const POSTS = [
+ {img:'lock', date:'11월 7일', likes:41, cap:'게임 비번 바꿈 ㅋㅋ 이번엔 진짜 아무도 못 맞힘 🔒 힌트 줄까? 내가 세상에서 제일 좋아하는 거 + 걔가 태어난 해', cm:[['민재','ㅋㅋㅋ 그걸 누가 몰라'],['서진','치킨2014 아님?ㅋㅋ']]},
+ {img:'kong', date:'11월 6일', likes:63, cap:'엄마 7시에 퇴근할 때까지 콩이랑 둘이 집 지킴 🐶 콩이 없었으면 어쩔 뻔', cm:[['서진','너 제일 좋아하는 게 콩이야 치킨이야 축구야?'],['하준','당연 콩이지 ㅋㅋ 치킨은 2등',1]]},
+ {img:'table', date:'11월 5일', likes:22, cap:'학원 시간표 또 바뀜 ㅠㅠ 화목 너무 빡셈', cm:[['서진','나도 은하수학 다님 ㅋㅋ 화요일에 보자']]},
+ {img:'cake', date:'11월 4일', likes:88, cap:'어제 생일파티 사진 이제 올림 ㅋㅋ 와 준 친구들 다 고마워 🎂', cm:[['민재','케이크 존맛이었음'],['지우','생축생축 🎉']]},
+ {img:'box', date:'10월 30일', likes:35, cap:'드디어 왔다 내 축구화 ⚽⚽ 토요일에 바로 신는다', cm:[['민재','오 무슨 색임?']]},
+ {img:'view', date:'10월 28일', likes:57, cap:'우리 집 뷰 맛집 🌇 오늘 노을 미쳤다', cm:[['지우','와 높다!! 몇 층이야?'],['하준','비밀 ㅋㅋ 엘베 오래 탐',1]]},
+ {img:'cu', date:'10월 25일', likes:19, cap:'집 가는 길 국룰 🍜 라면 + 삼김', cm:[['서진','은하동 CU에 삼김 1+1 하던데']]},
+ {img:'lunch', date:'10월 20일', likes:74, cap:'급식에 마라탕 나옴 실화?? 🌶️ 영양사 선생님 사랑해요', cm:[['지우','우리 학교 급식 최고']]},
+ {img:'sports', date:'10월 12일', likes:102, cap:'계주 2등 ㅠㅠ 그래도 우리 반 최고 💙 #운동회 #6학년2반', cm:[['서진','우리 달빛초는 운동회 다음 주임 ㅋㅋ 부럽'],['민재','하준 달리기 개빠름']]},
+ {img:'kongbday', date:'2026년 5월 5일', likes:120, cap:'우리 콩이 생일 🎉 벌써 6살!! 어린이날에 태어난 강아지 ㅋㅋ', cm:[['지우','콩이 너무 귀여워 ㅠㅠ']]}
+];
+
+const feed = document.getElementById('feed');
+POSTS.forEach((p,i)=>{
+  const el=document.createElement('article'); el.className='post';
+  el.innerHTML=`<div class="post-head"><div class="mini">하</div><b>hajun_kongkong</b><span class="date">${p.date}</span></div>
+  <button class="post-img" type="button" data-i="${i}" aria-label="${p.date} 사진 크게 보기">${SVG[p.img]}<span class="zoom-tip">🔍 눌러서 크게</span></button>
+  <div class="post-body"><div class="likes">좋아요 ${p.likes}개</div><div class="caption"><b>hajun_kongkong</b>${p.cap}</div>
+  <div class="comments">${p.cm.map(c=>`<div class="${c[2]?'reply':''}"><b>${c[0]==='하준'?'hajun_kongkong':c[0]==='서진'?'seojin_02':c[0]==='민재'?'minjae.kk':'jiwoo_v'}</b>${c[1]}</div>`).join('')}</div></div>`;
+  feed.appendChild(el);
+});
+
+// ---------- 확대 보기 ----------
+const modal=document.getElementById('modal'), inner=document.getElementById('stageInner'), stage=document.getElementById('stage');
+let z=1;
+function setZ(v){ z=Math.max(1,Math.min(4,v)); const base=Math.min(stage.clientWidth, stage.clientHeight||stage.clientWidth); inner.style.width=(base*z)+'px'; }
+feed.addEventListener('click',e=>{const b=e.target.closest('.post-img'); if(!b) return; inner.innerHTML=SVG[POSTS[b.dataset.i].img]; modal.hidden=false; setZ(1.6); document.getElementById('zClose').focus();});
+document.getElementById('zIn').onclick=()=>setZ(z+0.5);
+document.getElementById('zOut').onclick=()=>setZ(z-0.5);
+document.getElementById('zClose').onclick=()=>{modal.hidden=true;};
+document.addEventListener('keydown',e=>{if(e.key==='Escape') modal.hidden=true;});
+window.addEventListener('resize',()=>{ if(!modal.hidden) setZ(z); });
+
+// ---------- 문제 (정답은 바로 보이지 않게 살짝 감춤) ----------
+const dec=s=>decodeURIComponent(escape(atob(s)));
+const Q=[
+ {q:'하준이가 다니는 학교 이름은?', k:['7ZW07IaU'], trap:[['64us67mb','그건 서진이네 학교예요. 하준이 학교는 따로 있어요!']], hint:'운동회 현수막은 풍선에 가려져 있어요. 다른 사진에도 학교 이름 조각이 숨어 있을지 몰라요.'},
+ {q:'하준이가 사는 아파트 단지는?', k:['67OE67mb','Mw=='], trap:[['7J2A7ZWY','은하동엔 학원이 있어요. 집은 다른 곳이에요!']], hint:'물건을 집으로 받으려면 꼭 적어야 하는 게 있죠?'},
+ {q:'하준이네 집은 몇 층?', k:['MTI='], trap:[], hint:'아파트 1204호는 몇 층일까요? 숫자가 가려진 곳을 잘 보세요.'},
+ {q:'하준이 생일은 몇 월 며칠?', k:['MTE=','Mw=='], trap:[['NA==','사진을 올린 날과 생일이 같을까요? 글을 다시 읽어 보세요.']], hint:'게시물을 올린 날짜와 글 내용을 같이 보세요.'},
+ {q:'화요일, 하준이가 집에 혼자 있는 시간은? (몇 시부터 몇 시까지)', k:['NQ==','Nw=='], trap:[], hint:'학원이 끝나는 시간 + 엄마가 오는 시간을 합쳐 보세요.'},
+ {q:'하준이의 게임 비밀번호를 추측해 보세요.', k:['7L2p|a29uZw==','MjAyMA=='], trap:[['7LmY7YKo','치킨은 2등이래요. 댓글을 확인해 보세요!']], hint:'제일 좋아하는 것은 댓글에서, 태어난 해는 가장 오래된 게시물의 날짜로 계산해 보세요.'}
+];
+const st=Q.map(()=>({solved:false,hint:false,tries:0}));
+const qs=document.getElementById('qs');
+Q.forEach((item,i)=>{
+  const d=document.createElement('div'); d.className='q'; d.id='q'+i;
+  d.innerHTML=`<div class="q-title"><span class="q-num">${i+1}</span><p>${item.q}</p></div>
+  <div class="q-row"><input id="a${i}" autocomplete="off" aria-label="${i+1}번 답"><button class="btn" type="button" data-c="${i}">확인</button><button class="btn ghost" type="button" data-h="${i}">힌트</button></div>
+  <div class="fb" id="f${i}" aria-live="polite"></div><div class="hint" id="h${i}" hidden></div>`;
+  qs.appendChild(d);
+});
+const norm=s=>s.toLowerCase().replace(/\s+/g,'');
+function check(i){
+  if(st[i].solved) return;
+  const v=norm(document.getElementById('a'+i).value), f=document.getElementById('f'+i);
+  if(!v){f.className='fb bad';f.textContent='답을 먼저 적어 주세요.';return;}
+  const ok=Q[i].k.every(alts=>alts.split('|').some(a=>v.includes(norm(dec(a)))));
+  if(ok){ st[i].solved=true; f.className='fb ok'; f.textContent='정답! 🎯'; document.getElementById('q'+i).classList.add('solved'); document.getElementById('a'+i).disabled=true; }
+  else{ st[i].tries++; const t=Q[i].trap.find(t=>v.includes(dec(t[0]))); f.className='fb bad'; f.textContent=t?t[1]:'아직 아니에요. 사진을 더 크게 보며 다시 찾아보세요.'; }
+  render();
+}
+qs.addEventListener('click',e=>{const c=e.target.dataset.c,h=e.target.dataset.h; if(c!==undefined) check(+c); if(h!==undefined){st[h].hint=true; const el=document.getElementById('h'+h); el.textContent='💡 '+Q[h].hint; el.hidden=false; render();}});
+qs.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id&&e.target.id[0]==='a') check(+e.target.id.slice(1));});
+function render(){
+  const n=st.filter(s=>s.solved).length;
+  const sc=st.reduce((a,s)=>a+(s.solved?10:0)-(s.hint?3:0),0);
+  document.getElementById('score').textContent=sc+'점';
+  document.getElementById('count').textContent=n+' / 6 해결';
+  document.getElementById('done').classList.toggle('show',n===6);
+  try{localStorage.setItem('hajun-state',JSON.stringify({st,ans:Q.map((_,i)=>document.getElementById('a'+i).value)}));}catch(e){}
+}
+// 새로고침해도 이 태블릿의 진행 상황 유지
+try{const saved=JSON.parse(localStorage.getItem('hajun-state')||'null'); if(saved){saved.st.forEach((s,i)=>{st[i]=s; const a=document.getElementById('a'+i); a.value=saved.ans[i]||'';
+  if(s.solved){document.getElementById('q'+i).classList.add('solved'); a.disabled=true; const f=document.getElementById('f'+i); f.className='fb ok'; f.textContent='정답! 🎯';}
+  if(s.hint){const h=document.getElementById('h'+i); h.textContent='💡 '+Q[i].hint; h.hidden=false;}}); render();}}catch(e){}
+// 다음 모둠·다음 반을 위해 초기화 (두 번 눌러야 지워짐)
+const resetBtn=document.getElementById('resetBtn'); let armed=false, armT=null;
+resetBtn.onclick=()=>{ if(!armed){armed=true; resetBtn.textContent='한 번 더 누르면 초기화'; clearTimeout(armT); armT=setTimeout(()=>{armed=false;resetBtn.textContent='처음부터';},3000); return;}
+  try{localStorage.removeItem('hajun-state');localStorage.removeItem('team');}catch(e){} location.reload(); };
+
+// ---------- 탭 (좁은 화면) ----------
+const panes=document.querySelectorAll('[data-pane]');
+function show(name){panes.forEach(p=>p.classList.toggle('active',p.dataset.pane===name)); document.getElementById('tabFeed').setAttribute('aria-selected',name==='feed'); document.getElementById('tabNotes').setAttribute('aria-selected',name==='notes');}
+document.getElementById('tabFeed').onclick=()=>show('feed');
+document.getElementById('tabNotes').onclick=()=>show('notes');
+
+// ---------- 타이머 ----------
+let left=480,tick=null; const tEl=document.getElementById('timer'), tBtn=document.getElementById('timerBtn');
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+tBtn.onclick=()=>{ if(tick){clearInterval(tick);tick=null;tBtn.textContent='계속';return;} if(left<=0){left=480;} tBtn.textContent='멈춤'; tick=setInterval(()=>{left--; tEl.textContent=fmt(left); tEl.classList.toggle('low',left<=60); if(left<=0){clearInterval(tick);tick=null;tBtn.textContent='다시';tEl.textContent='끝!';}},1000); };
+try{const t=localStorage.getItem('team'); if(t) document.getElementById('teamName').value=t;}catch(e){}
+document.getElementById('teamName').addEventListener('input',e=>{try{localStorage.setItem('team',e.target.value);}catch(_){}});
+</script>
+
+</body>
+</html>
