@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>서윤이 SNS 탐정 · 중학생</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: 왼쪽 = 폰(찰칵그램 + 검색 + 다른 앱), 오른쪽 = 수사 파일. 좁으면 탭 전환 */
+:root{
+  --bg:#E9EEF2; --panel:#FFFFFF; --ink:#141B24; --muted:#5F6B78; --line:#D5DDE5;
+  --accent:#0F766E; --accent-soft:#DDF1EE; --navy:#1B2A3A; --amber:#F2B33D; --red:#D2453B;
+  --ok:#1F8A5B; --ok-soft:#DDF3E8; --bad:#B13A22;
+  --display:"Black Han Sans","Noto Sans KR",system-ui,sans-serif; --body:"Noto Sans KR",system-ui,-apple-system,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;word-break:keep-all;overflow-wrap:anywhere}
+button{font:inherit;cursor:pointer}
+.wrap{max-width:1200px;margin:0 auto;padding-block:16px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:14px}
+.badge{font-family:var(--display);background:var(--navy);color:var(--amber);border-radius:6px;padding:6px 12px;font-size:15px;letter-spacing:.04em}
+h1{font-family:var(--display);font-weight:400;font-size:28px;margin:0;color:var(--navy);text-wrap:balance}
+.team{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap}
+.team label{font-size:14px;color:var(--muted)}
+.team input,.team select{font:inherit;border:2px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--panel);color:var(--ink)}
+.team input{width:140px}
+.timer{font-family:var(--display);font-size:22px;background:var(--panel);border:2px solid var(--line);border-radius:8px;padding:2px 12px;font-variant-numeric:tabular-nums;min-width:90px;text-align:center}
+.timer.low{color:var(--red);border-color:var(--red)}
+.btn{border:0;border-radius:8px;padding:8px 14px;background:var(--accent);color:#fff;font-weight:700}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,.post-img:focus-visible,.tab:focus-visible,.app-tab:focus-visible,.result:focus-visible,.info-btn:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.sync{font-size:12px;color:var(--muted);width:100%;text-align:right}
+
+.tabs{display:none;gap:8px;margin-bottom:12px}
+.tab{flex:1;border:0;border-radius:10px;padding:10px;background:var(--panel);color:var(--muted);font-family:var(--display);font-size:18px}
+.tab[aria-selected="true"]{background:var(--navy);color:#fff}
+
+.grid{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:24px;align-items:start}
+.phone{background:var(--panel);border-radius:28px;border:2px solid var(--line);overflow:hidden}
+.app-tabs{display:flex;border-bottom:1px solid var(--line)}
+.app-tab{flex:1;border:0;background:none;padding:12px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent}
+.app-tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.view[hidden]{display:none!important}
+.app-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--line)}
+.app-name{font-family:var(--display);font-size:20px}
+.app-bar small{color:var(--muted);font-size:12px}
+.back{border:0;background:none;font-weight:700;color:var(--accent);padding:4px 0}
+.profile{display:flex;gap:14px;padding:16px;align-items:center;border-bottom:1px solid var(--line)}
+.avatar{width:66px;height:66px;border-radius:50%;flex:none;background:conic-gradient(#F2B33D,#D2453B,#0F766E,#F2B33D);padding:3px}
+.avatar span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:#fff;font-family:var(--display);font-size:26px;color:var(--accent)}
+.profile b{font-size:17px}
+.handle{color:var(--muted);font-size:13px}
+.bio{font-size:14px;margin-top:2px}
+.stats{display:flex;gap:14px;font-size:13px;color:var(--muted);margin-top:4px}
+.stats strong{color:var(--ink)}
+.post{border-bottom:8px solid var(--bg)}
+.post-head{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:14px}
+.mini{width:30px;height:30px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;font-family:var(--display);color:var(--accent);font-size:14px}
+.post-head .date{margin-left:auto;color:var(--muted);font-size:12px}
+.post-img{display:block;width:100%;border:0;padding:0;background:none;position:relative}
+.post-img svg{display:block;width:100%;height:auto}
+.zoom-tip{position:absolute;right:10px;bottom:10px;background:rgba(20,27,36,.75);color:#fff;font-size:12px;border-radius:999px;padding:3px 10px;pointer-events:none}
+.post-body{padding:10px 14px 14px;font-size:14px}
+.post-actions{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.likes{font-weight:700;font-size:13px}
+.info-btn{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:2px 10px;font-size:12px;color:var(--muted)}
+.caption b,.comments b{margin-right:4px}
+.comments{margin-top:8px;display:grid;gap:4px;font-size:13px;color:#33404D}
+.comments .reply{padding-left:18px}
+.search-box{display:flex;gap:8px;padding:14px;border-bottom:1px solid var(--line)}
+.search-box input{flex:1;min-width:0;font:inherit;border:2px solid var(--line);border-radius:999px;padding:8px 14px}
+.search-help{padding:14px;color:var(--muted);font-size:14px}
+.result{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:#fff;padding:14px}
+.result .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;flex:none}
+.result small{display:block;color:var(--muted)}
+.run-row,.item-row,.review{padding:12px 16px;border-bottom:1px solid var(--line);font-size:14px;display:flex;gap:10px;justify-content:space-between;align-items:center}
+.run-row b{font-variant-numeric:tabular-nums}
+.tag{font-size:12px;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 8px}
+.section-t{padding:12px 16px 4px;font-weight:700;font-size:13px;color:var(--muted)}
+
+.notes{background:var(--panel);border-radius:18px;border:2px solid var(--line);padding:20px;position:sticky;top:max(16px,env(safe-area-inset-top,0px))}
+.notes h2{font-family:var(--display);font-weight:400;font-size:24px;margin:0 0 4px;color:var(--navy)}
+.lead{color:var(--muted);font-size:14px;margin:0 0 12px}
+.score{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.chip{background:var(--amber);border-radius:999px;padding:4px 12px;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.chip.soft{background:var(--accent-soft)}
+.q{border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:8px;margin-bottom:10px}
+.q.solved{border-color:var(--ok);background:var(--ok-soft)}
+.q-title{display:flex;gap:10px;align-items:baseline}
+.q-num{font-family:var(--display);color:#fff;background:var(--navy);border-radius:6px;min-width:28px;text-align:center;padding:0 6px}
+.q-title p{margin:0;font-weight:700}
+.q-row{display:flex;gap:8px;flex-wrap:wrap}
+.q-row input{flex:1;min-width:0;font:inherit;border:2px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;color:var(--ink)}
+.fb{font-size:14px}
+.fb.ok{color:var(--ok);font-weight:700}
+.fb.bad{color:var(--bad)}
+.hint{font-size:14px;background:var(--accent-soft);border-radius:8px;padding:8px 10px;color:#0B4F4A}
+.done{display:none;border-radius:14px;background:var(--navy);color:#fff;padding:18px;margin-top:6px}
+.done.show{display:block}
+.done h3{font-family:var(--display);font-weight:400;font-size:22px;margin:0 0 6px;color:var(--amber)}
+.done p{margin:0 0 6px;font-size:15px}
+
+.modal{position:fixed;inset:0;background:rgba(10,14,20,.92);display:flex;flex-direction:column;z-index:20;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.modal[hidden]{display:none!important}
+.modal-bar{display:flex;gap:8px;align-items:center;padding:10px 16px;color:#fff}
+.modal-bar span{margin-right:auto;font-size:14px;opacity:.85}
+.modal-bar .btn{background:#fff;color:var(--ink);min-width:44px}
+.stage{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.stage-inner{margin:0 auto}
+.stage-inner svg{width:100%;height:auto;display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:25;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.25);padding:18px max(18px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px));max-width:520px;margin:0 auto}
+.sheet[hidden]{display:none!important}
+.sheet h3{margin:0 0 10px;font-size:17px}
+.sheet dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 14px;font-size:14px}
+.sheet dt{color:var(--muted)}
+.sheet dd{margin:0;font-variant-numeric:tabular-nums}
+
+.board{min-height:100vh;background:var(--navy);color:#fff}
+.board[hidden]{display:none!important}
+.board-in{max-width:1100px;margin:0 auto;padding-block:28px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.board-top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-bottom:24px}
+.board h1{color:var(--amber);font-size:40px}
+.board-top select{margin-left:auto;font-family:var(--display);font-size:22px;border-radius:10px;padding:8px 14px;background:var(--amber);color:var(--navy);border:0}
+.rank{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.rank li{display:grid;grid-template-columns:72px minmax(0,1fr) auto auto;gap:16px;align-items:center;background:#24384D;border-radius:16px;padding:16px 22px;font-variant-numeric:tabular-nums}
+.rank .pos{font-family:var(--display);font-size:40px;color:#8FB3C9;text-align:center}
+.rank li:nth-child(1){background:var(--accent)}.rank li:nth-child(1) .pos{color:var(--amber)}
+.rank .nm{font-family:var(--display);font-size:34px}
+.rank .sv{font-size:22px;color:#C9D6E2}
+.rank .sc{font-family:var(--display);font-size:44px;color:var(--amber);min-width:110px;text-align:right}
+.board-empty{font-size:22px;color:#C9D6E2}
+.board-foot{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;margin-top:28px;color:#9FB0C2;font-size:14px}
+.reset-box{display:flex;gap:8px;align-items:center}
+.reset-box input{font:inherit;border:1px solid #456;border-radius:8px;padding:6px 8px;background:#14202C;color:#fff;width:90px}
+
+@media (max-width:860px){
+  .tabs{display:flex}
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .grid > section[data-pane]{display:none}
+  .grid > section[data-pane].active{display:block}
+  .notes{position:static}
+  .team{margin-left:0}
+}
+@media (max-width:600px){.rank li{grid-template-columns:48px minmax(0,1fr) auto}.rank .sv{display:none}.rank .nm{font-size:24px}.rank .sc{font-size:30px;min-width:0}}
+@media (prefers-reduced-motion:no-preference){.q{transition:background .2s,border-color .2s}}
+</style>
+</head>
+<body>
+
+<div class="board" id="board" hidden>
+  <div class="board-in">
+    <div class="board-top">
+      <span class="badge">중학생 · 디지털 발자국 탐정</span>
+      <h1>실시간 순위표</h1>
+      <select id="boardCls" aria-label="반 선택"></select>
+    </div>
+    <ol class="rank" id="rank"></ol>
+    <p class="board-empty" id="boardEmpty">아직 점수를 올린 모둠이 없어요. 모둠이 문제를 맞히면 여기에 바로 나타나요.</p>
+    <div class="board-foot">
+      <span id="boardStatus">불러오는 중…</span>
+      <span class="reset-box"><label for="pin">초기화 비밀번호</label><input id="pin" inputmode="numeric" autocomplete="off"><button class="btn ghost" id="boardReset" type="button">이 반 순위 지우기</button></span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" id="main">
+  <header class="top">
+    <span class="badge">중학생 · 디지털 발자국 탐정</span>
+    <h1>서윤이의 흔적을 추적하라</h1>
+    <div class="team">
+      <label for="cls">반</label>
+      <select id="cls"></select>
+      <label for="teamName">모둠</label>
+      <input id="teamName" placeholder="예: 3모둠" autocomplete="off">
+      <div class="timer" id="timer" aria-live="polite">12:00</div>
+      <button class="btn ghost" id="timerBtn" type="button">시작</button>
+      <button class="btn ghost" id="resetBtn" type="button">처음부터</button>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tabFeed" aria-selected="true" type="button">📱 서윤이 폰</button>
+    <button class="tab" role="tab" id="tabNotes" aria-selected="false" type="button">🗂 수사 파일</button>
+  </div>
+
+  <div class="grid">
+    <section data-pane="feed" class="active" aria-label="서윤이 SNS와 다른 앱">
+      <div class="phone">
+        <div class="app-tabs" role="tablist">
+          <button class="app-tab" role="tab" id="appFeed" aria-selected="true" type="button">찰칵그램</button>
+          <button class="app-tab" role="tab" id="appSearch" aria-selected="false" type="button">🔍 앱 검색</button>
+        </div>
+
+        <div class="view" id="vFeed">
+          <div class="app-bar"><span class="app-name">찰칵그램</span><small>※ 수업용 가상 인물입니다</small></div>
+          <div class="profile">
+            <div class="avatar"><span>윤</span></div>
+            <div>
+              <b>윤 🏃‍♀️</b> <span class="handle">@yoonie_0412</span>
+              <div class="bio">중2 | 🏃‍♀️ 아침 러닝 | 🐱 콩떡 집사 | 다른 앱도 다 같은 아이디 ㅎ</div>
+              <div class="stats"><span><strong>7</strong> 게시물</span><span><strong>486</strong> 팔로워</span><span><strong>311</strong> 팔로잉</span></div>
+            </div>
+          </div>
+          <div id="feed"></div>
+        </div>
+
+        <div class="view" id="vSearch" hidden>
+          <form class="search-box" id="searchForm">
+            <input id="searchIn" placeholder="아이디나 이름으로 다른 앱 계정 찾기" autocomplete="off" aria-label="검색어">
+            <button class="btn" type="submit">검색</button>
+          </form>
+          <div id="searchOut"><p class="search-help">러닝 앱, 중고거래 앱 같은 다른 서비스의 공개 프로필을 찾아봅니다. 무엇을 검색하면 좋을까요?</p></div>
+        </div>
+
+        <div class="view" id="vRun" hidden>
+          <div class="app-bar"><button class="back" type="button" data-back>‹ 검색</button><span class="app-name">달리GO</span><small>공개 프로필</small></div>
+          <div class="profile"><div class="avatar"><span>윤</span></div><div><b>yoonie_0412</b><div class="bio">아침 러닝 기록 공개 중 🏃‍♀️ 이번 달 목표 40km</div></div></div>
+          <button class="post-img" type="button" data-svg="runmap" aria-label="러닝 경로 지도 크게 보기"><span class="zoom-tip">🔍 눌러서 크게</span></button>
+          <div class="section-t">최근 기록</div>
+          <div class="run-row"><span>11/14 (토) <b>07:05</b> 출발</span><span>5.0km · <span class="tag">아빠랑 👨</span></span></div>
+          <div class="run-row"><span>11/12 (목) <b>06:29</b> 출발</span><span>3.5km · 혼자</span></div>
+          <div class="run-row"><span>11/10 (화) <b>06:31</b> 출발</span><span>3.2km · 혼자</span></div>
+          <div class="run-row"><span>11/07 (토) <b>07:02</b> 출발</span><span>5.1km · <span class="tag">아빠랑 👨</span></span></div>
+          <div class="run-row"><span>11/05 (목) <b>06:30</b> 출발</span><span>3.4km · 혼자</span></div>
+          <div class="run-row"><span>11/03 (화) <b>06:32</b> 출발</span><span>3.1km · 혼자</span></div>
+        </div>
+
+        <div class="view" id="vMarket" hidden>
+          <div class="app-bar"><button class="back" type="button" data-back>‹ 검색</button><span class="app-name">동네장터</span><small>새빛동</small></div>
+          <div class="profile"><div class="avatar"><span>윤</span></div><div><b>yoonie_0412</b><div class="bio">매너온도 41.2℃ 🙂 · 거래 9회</div></div></div>
+          <div class="section-t">판매 중</div>
+          <div class="item-row"><span>러닝화 230 (두 번 신음)</span><b>25,000원</b></div>
+          <div class="item-row"><span>아이돌 포카 교환해요</span><b>나눔</b></div>
+          <div class="section-t">받은 거래 후기</div>
+          <div class="review"><span>“한서윤님 덕분에 좋은 거래했어요! 시간 약속 잘 지키세요”</span></div>
+          <div class="review"><span>“서윤님 친절해요 👍 아파트 정문에서 바로 만났어요”</span></div>
+          <div class="review"><span>“포카 상태 좋아요 감사합니다~”</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section data-pane="notes" aria-label="수사 파일">
+      <div class="notes">
+        <h2>🗂 수사 파일</h2>
+        <p class="lead">사진은 눌러서 크게 보고, 게시물의 <b>ⓘ 사진 정보</b>도 확인하세요. 서윤이의 다른 앱 계정도 찾아야 풀리는 문제가 있어요. <b>오답 -1점, 힌트 -5점.</b></p>
+        <div class="score"><span class="chip" id="score">0점</span><span class="chip soft" id="count">0 / 7 해결</span><span class="chip soft" id="tries">오답 0회</span></div>
+        <div id="qs"></div>
+        <div class="done" id="done">
+          <h3>수사 완료</h3>
+          <p>서윤이는 이름, 주소, 생일을 직접 쓴 적이 없어요. 그런데 사진 정보, 다른 앱, 댓글, 운동 기록을 합치자 <b>이름·학교·집 주소·집이 비는 날·혼자 있는 시간·비밀번호 찾기 답</b>까지 모두 드러났어요.</p>
+          <p>모둠 토론: 이 중 가장 위험한 단서 하나를 고르고, 서윤이가 무엇을 바꿔야 할지 정리해 보세요.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-label="사진 크게 보기">
+  <div class="modal-bar">
+    <span>밀어서 구석구석 살펴보세요</span>
+    <button class="btn" id="zOut" type="button" aria-label="축소">－</button>
+    <button class="btn" id="zIn" type="button" aria-label="확대">＋</button>
+    <button class="btn" id="zClose" type="button">닫기</button>
+  </div>
+  <div class="stage" id="stage"><div class="stage-inner" id="stageInner"></div></div>
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-label="사진 정보">
+  <h3>ⓘ 사진 정보</h3>
+  <dl id="sheetBody"></dl>
+  <button class="btn" id="sheetClose" type="button">닫기</button>
+</div>
+
+<script>
+const F='font-family="Noto Sans KR, sans-serif"';
+const SVG={
+trip:`<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#BFE0F2"/><rect y="270" width="400" height="130" fill="#C8B79F"/>
+<rect x="60" y="150" width="150" height="190" rx="18" fill="#E85D4A"/><rect x="110" y="120" width="50" height="34" rx="10" fill="none" stroke="#7A2F25" stroke-width="10"/><rect x="60" y="210" width="150" height="10" fill="#C24A3A"/><circle cx="85" cy="345" r="10" fill="#333"/><circle cx="185" cy="345" r="10" fill="#333"/>
+<g transform="translate(225 175) rotate(8)"><rect width="150" height="90" rx="8" fill="#fff"/><rect width="150" height="22" rx="8" fill="#0F766E"/><text x="10" y="16" ${F} font-size="11" fill="#fff" font-weight="700">BOARDING PASS</text><text x="10" y="44" ${F} font-size="16" font-weight="700" fill="#141B24">GMP → CJU</text><text x="10" y="64" ${F} font-size="9" fill="#5F6B78">HAN/S●●●●●</text><rect x="8" y="68" width="90" height="14" fill="#141B24"/><text x="104" y="80" ${F} font-size="9" fill="#5F6B78">SEAT 23A</text></g>
+<g transform="translate(300 60)"><circle r="26" fill="#F2B33D"/><rect x="-4" y="-38" width="8" height="12" fill="#3C8D3A"/></g></svg>`,
+study:`<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#2B2F3A"/><rect y="250" width="400" height="150" fill="#8B6A4E"/>
+<polygon points="300,60 360,60 380,120 280,120" fill="#F7E3A1"/><rect x="326" y="120" width="8" height="140" fill="#555"/><ellipse cx="330" cy="262" rx="40" ry="8" fill="#444"/><ellipse cx="220" cy="300" rx="190" ry="60" fill="#F7E3A1" opacity=".15"/>
+<rect x="70" y="230" width="220" height="140" rx="6" fill="#FAFAF5" transform="rotate(-4 180 300)"/><g transform="rotate(-4 180 300)" ${F}><text x="90" y="262" font-size="13" fill="#3a3a3a">2학기 기말 수학 오답노트</text>${Array.from({length:6},(_,i)=>`<line x1="88" y1="${280+i*14}" x2="270" y2="${280+i*14}" stroke="#C9D6E2"/>`).join('')}<rect x="200" y="338" width="80" height="22" rx="4" fill="#FFE27A"/><text x="206" y="354" font-size="12" fill="#333" font-weight="700">2-3 한</text></g>
+<g transform="translate(240 320) rotate(-14)"><rect width="110" height="40" rx="18" fill="#5B8DEF"/><rect x="10" y="12" width="90" height="6" rx="3" fill="#7FA6F3"/></g>
+<text x="20" y="40" ${F} font-size="14" fill="#9AA6B2">PM 10:14</text></svg>`,
+festival:`<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#F4EDE1"/><rect x="40" y="30" width="320" height="340" rx="6" fill="#1B2A3A"/>
+<text x="200" y="110" text-anchor="middle" ${F} font-size="20" fill="#F2B33D" font-weight="700">제15회</text><text x="200" y="165" text-anchor="middle" ${F} font-size="46" fill="#fff" font-weight="700">빛누리제</text>
+<text x="200" y="215" text-anchor="middle" ${F} font-size="18" fill="#C9D6E2">새</text><text x="236" y="215" text-anchor="middle" ${F} font-size="18" fill="#C9D6E2">중학교 학생회</text>
+<g><circle cx="216" cy="210" r="14" fill="#D2453B"/><path d="M216 224 q-4 30 8 60" stroke="#999" fill="none"/></g>
+<text x="200" y="260" text-anchor="middle" ${F} font-size="13" fill="#8FB3C9">11.6 (금) 09:00 - 15:00 · 본관 · 체육관</text>
+<rect x="90" y="290" width="220" height="44" rx="22" fill="#F2B33D"/><text x="200" y="318" text-anchor="middle" ${F} font-size="16" fill="#1B2A3A" font-weight="700">2-3 방탈출 카페 🔐</text>
+<g fill="#E85D4A"><circle cx="70" cy="40" r="22"/><circle cx="330" cy="50" r="18" fill="#0F766E"/></g></svg>`,
+bus:`<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#F5F7FA"/><rect width="400" height="60" fill="#2E7D32"/><text x="20" y="38" ${F} font-size="18" fill="#fff" font-weight="700">버스 도착 정보</text><text x="380" y="38" text-anchor="end" ${F} font-size="12" fill="#C8E6C9">07:41</text>
+<rect x="20" y="80" width="360" height="100" rx="12" fill="#fff" stroke="#E0E6EC"/><rect x="36" y="98" width="70" height="28" rx="6" fill="#2E7D32"/><text x="71" y="118" text-anchor="middle" ${F} font-size="15" fill="#fff" font-weight="700">새빛02</text><text x="120" y="118" ${F} font-size="15" fill="#141B24" font-weight="700">곧 도착 · 2분</text><text x="36" y="158" ${F} font-size="13" fill="#5F6B78">탑승 정류장: 한빛아파트 정문</text>
+<text x="20" y="215" ${F} font-size="13" fill="#5F6B78" font-weight="700">노선 (새빛02)</text>
+${['한빛아파트 정문','새빛시장','새빛동 주민센터','중학교·도서관','새빛역'].map((s,i)=>`<circle cx="40" cy="${245+i*30}" r="7" fill="${i===3?'#D2453B':'#2E7D32'}"/><text x="58" y="${250+i*30}" ${F} font-size="14" fill="#141B24">${s}</text>${i===3?`<text x="300" y="${250+i*30}" ${F} font-size="12" fill="#D2453B" font-weight="700">🔔 하차 알림</text>`:''}`).join('')}
+<line x1="40" y1="245" x2="40" y2="365" stroke="#2E7D32" stroke-width="2" opacity=".4"/></svg>`,
+elevator:`<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#B8BEC6"/><rect x="40" y="20" width="320" height="360" fill="#D7DCE2"/><rect x="60" y="40" width="200" height="320" rx="6" fill="#C2D3DE"/>
+<g transform="translate(160 210)"><ellipse cx="0" cy="80" rx="60" ry="80" fill="#2B3A4C"/><circle cx="0" cy="-30" r="40" fill="#3A2A22"/><rect x="-36" y="-70" width="72" height="110" rx="10" fill="#141B24"/><rect x="-30" y="-64" width="60" height="98" rx="6" fill="#3E4A5A"/><circle cx="18" cy="-56" r="5" fill="#111"/></g>
+<rect x="275" y="60" width="70" height="95" fill="#fff"/><g ${F}><text x="282" y="78" font-size="8" fill="#141B24" font-weight="700">1</text><rect x="288" y="70" width="9" height="10" fill="#F2B33D"/><text x="299" y="78" font-size="8" fill="#141B24" font-weight="700">7동</text><text x="282" y="92" font-size="7" fill="#141B24">엘리베이터</text><text x="282" y="103" font-size="7" fill="#141B24">정기점검 안내</text><text x="282" y="118" font-size="6" fill="#5F6B78">11.3(화) 10~12시</text><text x="282" y="130" font-size="6" fill="#5F6B78">운행이 중지됩니다</text><text x="282" y="146" font-size="5" fill="#5F6B78">관리사무소</text></g>
+<rect x="290" y="200" width="40" height="80" rx="6" fill="#9AA3AD"/><circle cx="310" cy="225" r="8" fill="#E9EEF2"/><circle cx="310" cy="255" r="8" fill="#E9EEF2"/></svg>`,
+cat:`<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#F3E9DC"/><rect y="270" width="400" height="130" fill="#B79B7E"/>
+<g transform="translate(200 230)"><ellipse cx="0" cy="50" rx="110" ry="60" fill="#F2F2F2"/><circle cx="-10" cy="-30" r="70" fill="#F2F2F2"/><polygon points="-70,-60 -55,-120 -25,-80" fill="#F2F2F2"/><polygon points="50,-60 35,-120 5,-80" fill="#F2F2F2"/><ellipse cx="-35" cy="-35" rx="9" ry="12" fill="#2E2E2E"/><ellipse cx="15" cy="-35" rx="9" ry="12" fill="#2E2E2E"/><polygon points="-10,-12 -18,-4 -2,-4" fill="#E7A1A1"/><g stroke="#999" stroke-width="2"><line x1="-50" y1="-8" x2="-95" y2="-14"/><line x1="30" y1="-8" x2="75" y2="-14"/></g><ellipse cx="-50" cy="-60" rx="22" ry="16" fill="#C9C9C9"/></g>
+<rect x="270" y="40" width="100" height="40" rx="20" fill="#fff"/><text x="320" y="66" text-anchor="middle" ${F} font-size="15" fill="#0F766E" font-weight="700">🎉 1주년</text></svg>`,
+dday:`<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#FDE8EE"/>${Array.from({length:14},(_,i)=>`<circle cx="${(i*67)%400}" cy="${(i*41)%400}" r="${6+(i%3)*4}" fill="${['#F9B9C9','#FFD9A0','#BDE3D9'][i%3]}"/>`).join('')}
+<rect x="80" y="110" width="240" height="180" rx="24" fill="#fff"/><text x="200" y="185" text-anchor="middle" ${F} font-size="64" fill="#D2453B" font-weight="700">D-11</text><text x="200" y="235" text-anchor="middle" ${F} font-size="20" fill="#5F6B78">4월은 최고의 달 🎂</text></svg>`,
+runmap:`<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="400" fill="#EEF2E6"/>
+<rect x="210" y="40" width="170" height="320" rx="20" fill="#CFE8C4"/><text x="295" y="210" text-anchor="middle" ${F} font-size="14" fill="#3C7A35" font-weight="700">새빛공원</text>
+<rect x="0" y="180" width="400" height="18" fill="#FFFFFF"/><rect x="190" y="0" width="16" height="400" fill="#FFFFFF"/>
+${[[20,30,'101동'],[100,30,'102동'],[20,95,'103동'],[100,95,'104동'],[20,225,'105동'],[100,225,'106동'],[20,300,'107동'],[100,300,'108동']].map(b=>`<rect x="${b[0]}" y="${b[1]}" width="66" height="44" rx="4" fill="#C9CED6"/><text x="${b[0]+33}" y="${b[1]+27}" text-anchor="middle" ${F} font-size="12" fill="#3A4452">${b[2]}</text>`).join('')}
+<text x="95" y="388" text-anchor="middle" ${F} font-size="10" fill="#5F6B78">한빛아파트</text>
+<path d="M60 345 L60 360 L198 360 L198 190 L230 190 L230 70 L360 70 L360 330 L230 330 L230 360 L198 360 L60 360 L60 345" fill="none" stroke="#F2563D" stroke-width="5" stroke-linejoin="round" opacity=".9"/>
+<circle cx="60" cy="345" r="10" fill="#0F766E" stroke="#fff" stroke-width="3"/><text x="74" y="350" ${F} font-size="10" fill="#0F766E" font-weight="700">출발·도착</text>
+<rect x="250" y="12" width="140" height="22" rx="11" fill="#fff"/><text x="320" y="28" text-anchor="middle" ${F} font-size="11" fill="#141B24">최근 6회 경로 겹쳐 보기</text></svg>`
+};
+
+const POSTS=[
+ {img:'trip',date:'11월 16일',likes:58,cap:'이번 주 금토일 가족여행 제주 간다 ✈️🍊 콩떡이는 이모네 맡김!',cm:[['도윤','부럽다ㅠ 귤 사와'],['서윤','ㅇㅋ 3박 아니고 2박임 ㅋㅋ',1]]},
+ {img:'study',date:'11월 12일',likes:33,cap:'기말 D-20 오답노트 정리 📚 오늘은 여기까지',cm:[['하린','밤 10시에 공부라니 갓생'],['서윤','엄마가 시킴 ㅋ',1]],info:[['촬영 일시','2026년 11월 12일 (목) 오후 10:14'],['기기','휴대폰 후면 카메라'],['위치','서울 새빛동 한빛아파트'],['좌표','37.5512, 127.0721']]},
+ {img:'festival',date:'11월 6일',likes:121,cap:'우리 반 방탈출 부스 대박 🔥🔐 #빛누리제 #중2',cm:[['지호','우리 한빛중은 축제 다음 달임 ㅠ'],['하린','줄 서서 3번 함 ㅋㅋ']]},
+ {img:'bus',date:'11월 5일',likes:12,cap:'버스 놓칠 뻔ㅠ 매일 아침 전쟁',cm:[['도윤','02번 진짜 안 와']]},
+ {img:'elevator',date:'10월 30일',likes:47,cap:'오늘 옷 괜찮나? 🪞',cm:[['하린','예쁘다 ㅠ']],info:[['촬영 일시','2026년 10월 30일 (금) 오전 7:32'],['기기','휴대폰 후면 카메라'],['위치','위치 정보 없음 (끔)']]},
+ {img:'cat',date:'10월 25일',likes:96,cap:'콩떡이 우리집 온 지 1년 🐱🎉',cm:[['도윤','콩떡이 많이 컸네'],['하린','보리 생각난다ㅠ'],['서윤','보리는 내 첫 반려동물이었지… 영원히 1번이야 🐶',1]]},
+ {img:'dday',date:'2026년 4월 1일',likes:140,cap:'D-11 🎂 4월 최고',cm:[['하린','선물 뭐 갖고 싶어?']]}
+];
+
+const NAMES={'서윤':'yoonie_0412','도윤':'doyoon.k','하린':'harin_ss','지호':'jiho__h'};
+const feed=document.getElementById('feed');
+POSTS.forEach((p,i)=>{
+  const el=document.createElement('article'); el.className='post';
+  el.innerHTML=`<div class="post-head"><div class="mini">윤</div><b>yoonie_0412</b><span class="date">${p.date}</span></div>
+  <button class="post-img" type="button" data-svg="${p.img}" aria-label="${p.date} 사진 크게 보기">${SVG[p.img]}<span class="zoom-tip">🔍 눌러서 크게</span></button>
+  <div class="post-body"><div class="post-actions"><span class="likes">좋아요 ${p.likes}개</span><button class="info-btn" type="button" data-info="${i}">ⓘ 사진 정보</button></div>
+  <div class="caption"><b>yoonie_0412</b>${p.cap}</div>
+  <div class="comments">${p.cm.map(c=>`<div class="${c[2]?'reply':''}"><b>${NAMES[c[0]]}</b>${c[1]}</div>`).join('')}</div></div>`;
+  feed.appendChild(el);
+});
+document.querySelector('#vRun .post-img').insertAdjacentHTML('afterbegin',SVG.runmap);
+
+// 사진 정보 (메타데이터)
+const sheet=document.getElementById('sheet'), sheetBody=document.getElementById('sheetBody');
+feed.addEventListener('click',e=>{const b=e.target.closest('.info-btn'); if(!b) return; const p=POSTS[b.dataset.info];
+  const rows=p.info||[['촬영 일시','정보 없음 (편집된 이미지)'],['위치','위치 정보 없음']];
+  sheetBody.innerHTML=rows.map(r=>`<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join(''); sheet.hidden=false; document.getElementById('sheetClose').focus();});
+document.getElementById('sheetClose').onclick=()=>{sheet.hidden=true;};
+
+// 확대 보기
+const modal=document.getElementById('modal'), inner=document.getElementById('stageInner'), stage=document.getElementById('stage');
+let z=1; function setZ(v){z=Math.max(1,Math.min(4,v)); const base=Math.min(stage.clientWidth,stage.clientHeight||stage.clientWidth); inner.style.width=(base*z)+'px';}
+document.addEventListener('click',e=>{const b=e.target.closest('.post-img'); if(!b) return; inner.innerHTML=SVG[b.dataset.svg]; modal.hidden=false; setZ(1.6); document.getElementById('zClose').focus();});
+document.getElementById('zIn').onclick=()=>setZ(z+0.5);
+document.getElementById('zOut').onclick=()=>setZ(z-0.5);
+document.getElementById('zClose').onclick=()=>{modal.hidden=true;};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){modal.hidden=true;sheet.hidden=true;}});
+window.addEventListener('resize',()=>{if(!modal.hidden) setZ(z);});
+
+// 폰 안의 화면 전환
+const views={feed:'vFeed',search:'vSearch',run:'vRun',market:'vMarket'};
+function view(name){Object.entries(views).forEach(([k,id])=>document.getElementById(id).hidden=k!==name);
+  document.getElementById('appFeed').setAttribute('aria-selected',name==='feed'); document.getElementById('appSearch').setAttribute('aria-selected',name!=='feed');}
+document.getElementById('appFeed').onclick=()=>view('feed');
+document.getElementById('appSearch').onclick=()=>view('search');
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>view('search'));
+const out=document.getElementById('searchOut');
+document.getElementById('searchForm').addEventListener('submit',e=>{
+  e.preventDefault(); const q=document.getElementById('searchIn').value.toLowerCase().replace(/\s+/g,'').replace(/^@/,'');
+  if(!q){return;}
+  const res=[];
+  if(q.length>=4 && 'yoonie_0412'.includes(q)){res.push(['run','🏃','#FDE4DF','달리GO · yoonie_0412','러닝 기록 공유 앱']); res.push(['market','🥕','#FFF1D6','동네장터 · yoonie_0412','중고거래 앱 · 새빛동']);}
+  else if(q.includes('한서윤')||q==='서윤한'){res.push(['market','🥕','#FFF1D6','동네장터 · yoonie_0412','거래 후기에서 이름이 검색됨']);}
+  out.innerHTML=res.length?res.map(r=>`<button class="result" type="button" data-go="${r[0]}"><span class="ic" style="background:${r[2]}">${r[1]}</span><span><b>${r[3]}</b><small>${r[4]}</small></span></button>`).join(''):`<p class="search-help">“${document.getElementById('searchIn').value}” 검색 결과가 없어요. 서윤이가 여러 앱에서 똑같이 쓸 만한 것을 검색해 보세요.</p>`;
+});
+out.addEventListener('click',e=>{const b=e.target.closest('[data-go]'); if(b) view(b.dataset.go);});
+
+// 문제
+const KEYS=JSON.parse(decodeURIComponent(escape(atob("W3siayI6W1si7IOI67mbIl1dLCJ0IjpbWyLtlZzruZsiLCLtlZzruZvspJHsnYAg7KeA7Zi464SkIO2Vmeq1kOyYiOyalC4g4oCY7ZWc67mb4oCZ7J2AIOyEnOycpOydtOuEpCDslYTtjIztirgg7J2066aE7J206riw64+EIO2VmOqzoOyalC4iXSxbIuu5m+uIhOumrCIsIuu5m+uIhOumrOygnOuKlCDstpXsoJwg7J2066aE7J207JeQ7JqULiDtlZnqtZAg7J2066aE7J2APyJdXX0seyJrIjpbWyLtlZzshJzsnKQiXV0sInQiOltbIuyEnOycpCIsIuyEseq5jOyngCDssL7slYTslbwg7ZW07JqULiDqsJnsnYAg7JWE7J2065SU66GcIOuLpOuluCDslbHsnYQg6rKA7IOJ7ZW0IOuztOyEuOyalC4iXV19LHsiayI6W1siNCJdLFsiMTIiXV0sInQiOltbIjTsm5Qx7J28IiwiNOyblCAx7J287J2AIOq4gOydhCDsmKzrprAg64Kg7J207JeQ7JqULiBELTEx7J2EIOqzhOyCsO2VtCDrs7TshLjsmpQuIl1dfSx7ImsiOltbIu2VnOu5myJdLFsiMTA3Il1dLCJ0IjpbWyLsg4jruZvrj5kiLCLrj5nrhKQg7J2066aEIOunkOqzoCDslYTtjIztirgg7J2066aE7J2EIOywvuyVhOuztOyEuOyalC4iXSxbIjExNyIsIuyXmOumrOuyoOydtO2EsCDslYjrgrTrrLjrp4zsnLzroZzripQg6rCA7Jq0642wIOyIq+yekOulvCDslYwg7IiYIOyXhuyWtOyalC4g64uk66W4IOuLqOyEnOyZgCDrp57strAg67O07IS47JqULiJdXX0seyJrIjpbWyIyMCJdLFsiMjIiXV0sInQiOltbIjE2IiwiMTHsm5QgMTbsnbzsnYAg6riA7J2EIOyYrOumsCDrgqDsnbTsl5DsmpQuIOq3uCDso7zsnZgg6riIwrfthqDCt+ydvOydgD8iXSxbIjIzIiwi4oCYMuuwleKAmeydtOudvOuKlCDrjJPquIDsnYQg7ZmV7J247ZW0IOuztOyEuOyalC4iXV19LHsiayI6W1si67O066asIl1dLCJ0IjpbWyLsvanrlqEiLCLsvanrlqHsnbTripQg7KeA6riIIO2CpOyasOuKlCDqs6DslpHsnbTsmIjsmpQuIOKAmOyyq+KAmSDrsJjroKTrj5nrrLzsnYA/Il1dfSx7ImsiOltbIu2ZlCJdLFsi66qpIl0sWyI2Il1dLCJ4IjpbIu2GoCJdLCJ0IjpbWyLthqAiLCLthqDsmpTsnbzsl5Qg7JWE67mg656RIOqwmeydtCDri6zroKTsmpQuIOKAmO2YvOyekOKAmeyduCDrgqDrp4whIl1dfV0="))));
+const Q=[
+ {q:'서윤이가 다니는 학교는?', hint:'축제 포스터에서 가려진 글자 하나 + 버스 노선에서 하차 알림을 켠 정류장.'},
+ {q:'서윤이의 성과 이름은?', hint:'찰칵그램에는 이름이 일부만 보여요. 같은 아이디로 다른 앱을 검색해 보세요.'},
+ {q:'서윤이의 생일은?', hint:'아이디의 숫자 + 가장 오래된 게시물의 날짜와 D-day.'},
+ {q:'서윤이네 집 주소 (아파트 이름 + 몇 동)?', hint:'ⓘ 사진 정보가 남아 있는 게시물이 있어요. 동 번호는 엘리베이터 안내문과 러닝 앱 지도를 함께 보세요.'},
+ {q:'서윤이네 가족이 집을 비우는 날짜는? (며칠부터 며칠까지)', hint:'글을 올린 날짜를 기준으로 “이번 주 금토일”을 달력에서 세어 보세요.'},
+ {q:'많은 사이트의 ‘비밀번호 찾기’ 질문: “첫 반려동물의 이름은?” 서윤이의 답은?', hint:'지금 키우는 반려동물이 첫 번째일까요? 댓글을 끝까지 읽어 보세요.'},
+ {q:'서윤이가 혼자 밖에 있는 요일과 시각은?', hint:'러닝 앱 기록에서 ‘혼자’인 날만 골라 보세요.'}
+];
+const st=Q.map(()=>({solved:false,hint:false,tries:0}));
+const qs=document.getElementById('qs');
+Q.forEach((item,i)=>{const d=document.createElement('div'); d.className='q'; d.id='q'+i;
+  d.innerHTML=`<div class="q-title"><span class="q-num">${i+1}</span><p>${item.q}</p></div>
+  <div class="q-row"><input id="a${i}" autocomplete="off" aria-label="${i+1}번 답"><button class="btn" type="button" data-c="${i}">확인</button><button class="btn ghost" type="button" data-h="${i}">힌트</button></div>
+  <div class="fb" id="f${i}" aria-live="polite"></div><div class="hint" id="h${i}" hidden></div>`; qs.appendChild(d);});
+const norm=s=>s.toLowerCase().replace(/\s+/g,'');
+const clsSel=document.getElementById('cls'), teamIn=document.getElementById('teamName');
+function check(i){
+  if(st[i].solved) return;
+  const f=document.getElementById('f'+i), v=norm(document.getElementById('a'+i).value);
+  if(!clsSel.value||!teamIn.value.trim()){f.className='fb bad';f.textContent='맨 위에서 반과 모둠 이름을 먼저 정해 주세요.';(clsSel.value?teamIn:clsSel).focus();return;}
+  if(!v){f.className='fb bad';f.textContent='답을 먼저 적어 주세요.';return;}
+  const k=KEYS[i]; const ok=k.k.every(alts=>alts.some(a=>v.includes(norm(a))))&&!(k.x||[]).some(a=>v.includes(norm(a)));
+  if(ok){st[i].solved=true;f.className='fb ok';f.textContent='정답! 🎯';document.getElementById('q'+i).classList.add('solved');document.getElementById('a'+i).disabled=true;}
+  else{st[i].tries++;const t=(k.t||[]).find(t=>v.includes(norm(t[0])));f.className='fb bad';f.textContent=(t?t[1]:'아직 아니에요. 단서를 하나 더 찾아보세요.')+' (-1점)';}
+  render();
+}
+qs.addEventListener('click',e=>{const c=e.target.dataset.c,h=e.target.dataset.h; if(c!==undefined) check(+c); if(h!==undefined&&!st[h].hint&&!st[h].solved){st[h].hint=true;const el=document.getElementById('h'+h);el.textContent='💡 '+Q[h].hint;el.hidden=false;render();}});
+qs.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id&&e.target.id[0]==='a') check(+e.target.id.slice(1));});
+const scoreOf=()=>Math.max(0,st.reduce((a,s)=>a+(s.solved?10:0)-(s.hint?5:0)-s.tries,0));
+function render(){
+  const n=st.filter(s=>s.solved).length, tr=st.reduce((a,s)=>a+s.tries,0);
+  document.getElementById('score').textContent=scoreOf()+'점';
+  document.getElementById('count').textContent=n+' / 7 해결';
+  document.getElementById('tries').textContent='오답 '+tr+'회';
+  document.getElementById('done').classList.toggle('show',n===7);
+  try{localStorage.setItem('yoon-state',JSON.stringify({st,ans:Q.map((_,i)=>document.getElementById('a'+i).value)}));}catch(e){}
+  pushScore();
+}
+
+// 반 선택지 (1~10반)
+for(let c=1;c<=10;c++){[clsSel,document.getElementById('boardCls')].forEach(s=>{const o=document.createElement('option');o.value=String(c);o.textContent=c+'반';s.appendChild(o);});}
+clsSel.insertAdjacentHTML('afterbegin','<option value="">선택</option>'); clsSel.value='';
+try{const c=localStorage.getItem('yoon-cls'); if(c) clsSel.value=c; const t=localStorage.getItem('yoon-team'); if(t) teamIn.value=t;}catch(e){}
+clsSel.addEventListener('change',()=>{try{localStorage.setItem('yoon-cls',clsSel.value);}catch(e){} pushScore();});
+teamIn.addEventListener('input',()=>{try{localStorage.setItem('yoon-team',teamIn.value);}catch(e){}});
+teamIn.addEventListener('change',()=>pushScore());
+
+// 순위표 서버 (초등용과 같은 서버, 반 이름 앞에 m을 붙여 구분)
+const API='https://script.google.com/macros/s/AKfycbyNCA33dPQ6itU087a-0B0GmPIK2WRWIH9_bJAGHh1wk3XsW6-yLwYMaHejEuUXBbu01A/exec';
+const syncEl=document.createElement('div'); syncEl.className='sync'; document.querySelector('.team').appendChild(syncEl);
+let pushT=null;
+function pushScore(){clearTimeout(pushT); pushT=setTimeout(()=>{
+  const cls=clsSel.value, team=teamIn.value.trim(); if(!cls||!team) return;
+  const n=st.filter(s=>s.solved).length;
+  syncEl.textContent='순위표에 올리는 중…';
+  fetch(API+'?action=submit&cls=m'+encodeURIComponent(cls)+'&team='+encodeURIComponent(team)+'&score='+scoreOf()+'&solved='+n,{credentials:'omit'})
+   .then(r=>r.json()).then(()=>{syncEl.textContent='✓ 순위표에 반영됨';}).catch(()=>{syncEl.textContent='⚠ 순위표 연결 안 됨 (활동은 계속할 수 있어요)';});
+},400);}
+
+// 저장된 진행 상황 복원
+try{const s=JSON.parse(localStorage.getItem('yoon-state')||'null'); if(s){s.st.forEach((x,i)=>{st[i]=x; const a=document.getElementById('a'+i); a.value=s.ans[i]||'';
+  if(x.solved){document.getElementById('q'+i).classList.add('solved');a.disabled=true;const f=document.getElementById('f'+i);f.className='fb ok';f.textContent='정답! 🎯';}
+  if(x.hint){const h=document.getElementById('h'+i);h.textContent='💡 '+Q[i].hint;h.hidden=false;}}); render();}}catch(e){}
+
+// 처음부터 (두 번 눌러야 초기화)
+const resetBtn=document.getElementById('resetBtn'); let armed=false,armT=null;
+resetBtn.onclick=()=>{if(!armed){armed=true;resetBtn.textContent='한 번 더 누르면 초기화';clearTimeout(armT);armT=setTimeout(()=>{armed=false;resetBtn.textContent='처음부터';},3000);return;}
+  try{['yoon-state','yoon-team','yoon-cls'].forEach(k=>localStorage.removeItem(k));}catch(e){} location.reload();};
+
+// 좁은 화면 탭
+const panes=document.querySelectorAll('[data-pane]');
+function show(n){panes.forEach(p=>p.classList.toggle('active',p.dataset.pane===n));document.getElementById('tabFeed').setAttribute('aria-selected',n==='feed');document.getElementById('tabNotes').setAttribute('aria-selected',n==='notes');}
+document.getElementById('tabFeed').onclick=()=>show('feed');
+document.getElementById('tabNotes').onclick=()=>show('notes');
+
+// 타이머 12분
+let left=720,tick=null; const tEl=document.getElementById('timer'),tBtn=document.getElementById('timerBtn');
+const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+tBtn.onclick=()=>{if(tick){clearInterval(tick);tick=null;tBtn.textContent='계속';return;} if(left<=0) left=720; tBtn.textContent='멈춤';
+  tick=setInterval(()=>{left--;tEl.textContent=fmt(left);tEl.classList.toggle('low',left<=60);if(left<=0){clearInterval(tick);tick=null;tBtn.textContent='다시';tEl.textContent='끝!';}},1000);};
+
+// 선생님용 순위표 (#board)
+function startBoard(){
+  document.getElementById('main').hidden=true; document.getElementById('board').hidden=false;
+  const sel=document.getElementById('boardCls'); try{const c=localStorage.getItem('yoon-board-cls'); if(c) sel.value=c;}catch(e){}
+  const esc=s=>s.replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+  function load(){fetch(API+'?action=board&cls=m'+sel.value,{credentials:'omit'}).then(r=>r.json()).then(d=>{
+    const rows=Object.entries(d.teams||{}).sort((a,b)=>b[1].score-a[1].score||b[1].solved-a[1].solved||a[1].t-b[1].t);
+    document.getElementById('rank').innerHTML=rows.map(([nm,v],i)=>`<li><span class="pos">${i+1}</span><span class="nm">${esc(nm)}</span><span class="sv">${v.solved} / 7 해결</span><span class="sc">${v.score}점</span></li>`).join('');
+    document.getElementById('boardEmpty').hidden=rows.length>0;
+    document.getElementById('boardStatus').textContent=sel.value+'반 · 5초마다 자동 새로고침 · 마지막 확인 '+new Date().toLocaleTimeString('ko-KR');
+  }).catch(()=>{document.getElementById('boardStatus').textContent='⚠ 순위표 서버에 연결할 수 없어요.';});}
+  sel.onchange=()=>{try{localStorage.setItem('yoon-board-cls',sel.value);}catch(e){} load();};
+  load(); setInterval(load,5000);
+  document.getElementById('boardReset').onclick=()=>{const pin=document.getElementById('pin').value.trim();
+    fetch(API+'?action=reset&cls=m'+sel.value+'&pin='+encodeURIComponent(pin),{credentials:'omit'}).then(r=>r.json()).then(d=>{document.getElementById('boardStatus').textContent=d.ok?sel.value+'반 순위를 지웠어요.':'비밀번호가 맞지 않아요.';load();});};
+}
+if(location.hash==='#board') startBoard();
+window.addEventListener('hashchange',()=>location.reload());
+</script>
+</body>
+</html>
